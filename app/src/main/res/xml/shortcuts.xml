@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 搜索快捷方式 -->
+    <shortcut
+        android:shortcutId="search"
+        android:icon="@drawable/action_share"
+        android:shortcutShortLabel="@string/shortcut_search"
+        android:enabled="true">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.xiaomi.browser"
+            android:targetClass="com.xiaomi.browser.BrowserActivity"
+            android:data="https://www.google.com" />
+    </shortcut>
+
+    <!-- 书签快捷方式 -->
+    <shortcut
+        android:shortcutId="bookmarks"
+        android:icon="@drawable/action_share"
+        android:shortcutShortLabel="@string/shortcut_bookmarks"
+        android:enabled="true">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.xiaomi.browser"
+            android:targetClass="com.xiaomi.browser.BrowserActivity"
+            android:data="content://com.xiaomi.browser/bookmarks" />
+    </shortcut>
+</shortcuts>

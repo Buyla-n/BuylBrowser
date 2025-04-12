@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Browser</string>
+    <string name="shortcut_search" translatable="false">搜索</string>
+    <string name="shortcut_bookmarks" translatable="false">书签</string>
+</resources>

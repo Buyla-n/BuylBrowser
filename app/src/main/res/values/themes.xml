@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Browser" parent="android:Theme.Material.Light.NoActionBar" >
+        <item name="android:scrollbarThumbVertical">@drawable/hyper_scrollbar_thumb</item>
+        <item name="android:scrollbarTrackVertical">@null</item>
+        <item name="android:scrollbarThumbHorizontal">@drawable/hyper_scrollbar_thumb</item>
+        <item name="android:scrollbarTrackHorizontal">@null</item>
+    </style>
+</resources>

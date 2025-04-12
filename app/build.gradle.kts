@@ -12,8 +12,8 @@ android {
         applicationId = "com.xiaomi.browser"
         minSdk = 31
         targetSdk = 35
-        versionCode = 37200
-        versionName = "3.7.2"
+        versionCode = 13
+        versionName = "0.1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

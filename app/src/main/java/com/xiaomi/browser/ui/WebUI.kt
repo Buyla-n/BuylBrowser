@@ -310,7 +310,6 @@ object WebUI {
                         if (it.url != viewModel.browserUrl) {
                             viewModel.browserUrl.takeIf { url -> url.isNotEmpty() }?.let { url ->
                                 it.loadUrl(url)
-                                viewModel.browserUrl = url
                                 loading = true
                             }
                         }

@@ -6,5 +6,8 @@
         <item name="android:scrollbarTrackVertical">@null</item>
         <item name="android:scrollbarThumbHorizontal">@drawable/hyper_scrollbar_thumb</item>
         <item name="android:scrollbarTrackHorizontal">@null</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- 关闭系统自动添加对比度 -->
+        <item name="android:enforceNavigationBarContrast">false</item>
     </style>
 </resources>

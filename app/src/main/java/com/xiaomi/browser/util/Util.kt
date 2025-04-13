@@ -56,12 +56,6 @@ object Util {
         Toast.makeText(context, "开始下载", Toast.LENGTH_SHORT).show()
     }
 
-    fun errorPage(webView: WebView, message: String) {
-        val encodedMessage = URLEncoder.encode(message, "UTF-8")
-        val errorPageUrl = "file:///android_asset/error.html?message=$encodedMessage"
-        webView.loadUrl(errorPageUrl)
-    }
-
     @SuppressLint("QueryPermissionsNeeded")
     fun openDownload(context: Context) {
         try {

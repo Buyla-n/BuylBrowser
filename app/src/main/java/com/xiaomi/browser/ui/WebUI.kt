@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -113,8 +114,6 @@ object WebUI {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         loading = false
-                        searchUrlText = url ?: "null"
-                        viewModel.browserUrl = url ?: "null"
                         val shouldAddNew = when {
                             pref.getHistory().isEmpty() -> true
                             else -> pref.getHistory().last().url != url
@@ -220,6 +219,9 @@ object WebUI {
                                     ),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
+                                LaunchedEffect(viewModel.browserUrl) {
+                                    searchUrlText = viewModel.browserUrl
+                                }
                                 BasicTextField(
                                     value = searchUrlText,
                                     onValueChange = { searchUrlText = it.ifEmpty { " " } },
@@ -323,10 +325,7 @@ object WebUI {
                         .weight(1f),
                     update = {
                         if (it.url != viewModel.browserUrl) {
-                            viewModel.browserUrl.takeIf { url -> url.isNotEmpty() }?.let { url ->
-                                it.loadUrl(url)
-                                loading = true
-                            }
+                            it.loadUrl(viewModel.browserUrl)
                         }
                     }
                 )

@@ -18,11 +18,9 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,13 +36,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -173,28 +168,45 @@ object WebUI {
         Scaffold(
             contentWindowInsets = WindowInsets(bottom = 0),
             topBar = {
+//                if (showInfoSheet){
+//                    ModalBottomSheet(
+//                        onDismissRequest = { showInfoSheet = false },
+//                        modifier = Modifier.graphicsLayer(
+//                            rotationX = 180f
+//                        ).height(256.dp),
+//                        sheetState = rememberModalBottomSheetState(
+//                            skipPartiallyExpanded = true, // 跳过中间状态
+//                            confirmValueChange = { target ->
+//                                // 限制只能展开到 Expanded 或 Collapsed
+//                                target == SheetValue.Expanded || target == SheetValue.Hidden
+//                            }
+//                        )
+//                    ) {
+//                        Box(
+//                            modifier = Modifier.graphicsLayer(
+//                                rotationX = 180f
+//                            ).fillMaxSize().padding(top = 16.dp),
+//                            contentAlignment = Alignment.TopStart
+//                        ) {
+//                            Row {
+//                                Text(viewModel.browserUrl)
+//                                IconButton(
+//                                    onClick = { showInfoSheet = false },
+//                                ) {
+//                                    Icon(
+//                                        imageVector = Icons.Rounded.Close,
+//                                        contentDescription = null
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
                 AnimatedVisibility(
                     visible = viewModel.barVisible,
                     enter = slideInVertically { -it } + fadeIn(),
                     exit = slideOutVertically { -it } + fadeOut()
                 ) {
-                    if (showInfoSheet){
-                        ModalBottomSheet(
-                            onDismissRequest = { showInfoSheet = false },
-                            modifier = Modifier.graphicsLayer(
-                                rotationX = 180f
-                            ).fillMaxHeight()
-
-                        ) {
-                            Box(
-                                modifier = Modifier.graphicsLayer(
-                                    rotationX = 180f
-                                )
-                            ) {
-                                Text("网站信息测试 ")
-                            }
-                        }
-                    }
                     TopAppBar(
                         title = {
                             Row(
@@ -239,7 +251,8 @@ object WebUI {
                                 IconButton(
                                     onClick = {
                                         webView.reload()
-                                    }
+                                    }//,
+//                                    Modifier.weight(1f)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Rounded.Refresh,
@@ -250,12 +263,14 @@ object WebUI {
 //                                IconButton(
 //                                    onClick = {
 //                                        showInfoSheet = true
-//                                    }
+//                                    },
+//                                    Modifier.weight(1f)
 //                                ) {
 //                                    Icon(
 //                                        imageVector = Icons.Rounded.Build,
 //                                        contentDescription = null,
-//                                        tint = MaterialTheme.colorScheme.primary
+//                                        tint = MaterialTheme.colorScheme.primary,
+//                                        modifier = Modifier.size(18.dp)
 //                                    )
 //                                }
                             }

@@ -29,69 +29,70 @@
                 <category
                     android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- 浏览器功能声明 -->
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="http" />
                 <data android:scheme="https" />
+                <data android:scheme="about" />
+                <data android:scheme="javascript" />
             </intent-filter>
 
-            <!-- 默认浏览器设置 -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-                <data android:host="*"
-                    tools:ignore="AppLinkUrlError" />
-            </intent-filter>
-
-            <!-- 处理HTML内容 -->
-            <intent-filter tools:ignore="AppLinkUrlError">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:scheme="inline" />
                 <data android:mimeType="text/html" />
                 <data android:mimeType="text/plain" />
                 <data android:mimeType="application/xhtml+xml" />
+                <data android:mimeType="application/vnd.wap.xhtml+xml" />
+            </intent-filter>
+
+            <intent-filter tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-                <data android:scheme="content" />
                 <data android:scheme="file" />
-                <data android:host="*" />
-                <data android:pathPattern=".*\\.html" />
-                <data android:pathPattern=".*\\.htm" />
-            </intent-filter>
-
-            <!-- 处理本地HTML文件 -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="file" />
-                <data android:mimeType="*/*" />
-                <data android:host="*" />
-                <data android:pathPattern=".*\\.html" />
-                <data android:pathPattern=".*\\.htm" />
-            </intent-filter>
-
-            <!-- 处理content://类型的HTML文件 -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="*/*" />
                 <data android:scheme="content" />
                 <data android:host="*" />
-                <data android:pathPattern=".*\\.html" />
-                <data android:pathPattern=".*\\.htm" />
+                <data android:mimeType="application/x-webarchive-xml" />
             </intent-filter>
 
-            <!-- 处理其他应用分享的URL -->
             <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
+                <category
+                    android:name="android.intent.category.BROWSABLE" />
+                <category
+                    android:name="android.intent.category.APP_BROWSER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action
+                    android:name="android.intent.action.WEB_SEARCH" />
+                <category
+                    android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <intent-filter>
+                <action
+                    android:name="android.intent.action.MEDIA_SEARCH" />
+                <category
+                    android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <intent-filter>
+                <action
+                    android:name="android.intent.action.SEARCH" />
+                <category
+                    android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
             <meta-data

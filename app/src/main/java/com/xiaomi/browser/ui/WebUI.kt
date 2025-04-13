@@ -289,7 +289,7 @@ object WebUI {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(top = if (viewModel.barVisible) innerPadding.calculateTopPadding() else 0.dp)
             ) {
 
                 // 加载进度条

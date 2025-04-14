@@ -100,4 +100,5 @@ object Util {
             Toast.makeText(context, "没有找到可用的分享应用", Toast.LENGTH_SHORT).show()
         }
     }
+
 }

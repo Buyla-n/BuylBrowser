@@ -6,20 +6,13 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
-import android.util.Log
-import android.webkit.ValueCallback
 import android.webkit.WebView
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -59,22 +51,17 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,23 +77,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.xiaomi.browser.R
 import com.xiaomi.browser.ui.WebUI.BrowserWeb
-import com.xiaomi.browser.util.BookmarkData
 import com.xiaomi.browser.util.BrowserViewModel
-import com.xiaomi.browser.util.HistoryItemData
 import com.xiaomi.browser.util.PreferenceHelper
 import com.xiaomi.browser.util.QuickLinkData
-import com.xiaomi.browser.util.QuickSetData
-import com.xiaomi.browser.util.Util.DESKTOP_USER_AGENT
-import com.xiaomi.browser.util.Util.MOBILE_USER_AGENT
-import com.xiaomi.browser.util.Util.openDownload
-import com.xiaomi.browser.util.Util.shareUrl
 import com.xiaomi.browser.util.WebViewState
-import kotlinx.coroutines.launch
-import org.json.JSONArray
-import kotlin.text.isNotEmpty
 
 object HomeUI {
     @SuppressLint("UnusedContentLambdaTargetStateParameter")
@@ -115,70 +91,27 @@ object HomeUI {
     fun BrowserHome(context: Context) {
 
         val viewModel : BrowserViewModel = viewModel()
-        val scope = rememberCoroutineScope()
         val prefs by lazy { PreferenceHelper(context) }
         var showBottomMenu by remember { mutableStateOf(false) }
         var showAddDialog by remember { mutableStateOf(false) }
         var showShortcutDialog by remember { mutableStateOf(false) }
         var showCustom by remember { mutableStateOf(false) }
-        val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = false,
-        )
         var webViewRef by remember { mutableStateOf<WebView?>(null) }
         var webViewState by remember { mutableStateOf(WebViewState()) }
-        var searchText by remember { mutableStateOf(" ") }
         var enabledQuickLink by remember { mutableStateOf(prefs.enabledQuickLink) }
-
-        val darkModeTitle =
-            when (viewModel.darkMode){
-                0 -> "跟随系统"
-                1 -> "日间模式"
-                else -> "夜间模式"
-            }
-
-        val nonPictureTitle =
-            when (viewModel.NonPicture){
-                0 -> "有图"
-                1 -> "节流"
-                else -> "无图"
-            }
 
         val quickLinkItems = remember {
             mutableStateListOf<QuickLinkData>().apply {
                 addAll(prefs.getQuickLinks())
             }
         }
-        var enabledFullscreenMode by remember { mutableStateOf(false) }
-
-        // 0 quick set | 1 history | 2 bookmark
-        var quickSetState by remember { mutableIntStateOf(0) }
-
-        // 全屏模式切换时自动隐藏/显示底部栏
-        LaunchedEffect(enabledFullscreenMode) {
-            viewModel.barVisible = !enabledFullscreenMode
-        }
-
-        val quickSetItems =
-            listOf(
-                QuickSetData(id = 1, icon = R.drawable.action_download, title = "已下载"),
-                QuickSetData(id = 2, icon = R.drawable.action_share, title = "分享", enabled = viewModel.browserMode == 1),
-                QuickSetData(id = 3, icon = R.drawable.action_agent, title = "桌面端", enabled = viewModel.accessMode == 1, switchMode = true),
-                QuickSetData(id = 4, icon = R.drawable.action_history, title = "历史"),
-                QuickSetData(id = 5, icon = R.drawable.actiom_night, title = darkModeTitle),
-                QuickSetData(id = 6, icon = R.drawable.action_shortcut, title = "加到桌面", enabled = viewModel.browserMode == 1),
-                QuickSetData(id = 7, icon = R.drawable.action_add_bookmark, title = "添加书签", enabled = viewModel.browserMode == 1),
-                QuickSetData(id = 8, icon = R.drawable.action_fullscreen, title = "全屏", enabled = enabledFullscreenMode, switchMode = true),
-                QuickSetData(id = 9, icon = R.drawable.action_bookmark, title = "书签"),
-                QuickSetData(id = 10, icon = R.drawable.action_nopicture, title = nonPictureTitle.toString()),
-                QuickSetData(id = 11, icon = R.drawable.action_diff, title = "资源")
-            )
 
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
                 .background(color = MaterialTheme.colorScheme.background),
             floatingActionButton = {
-                if (enabledFullscreenMode) {
+                if (viewModel.fullscreenMode) {
                     FloatingActionButton(
                         onClick = { viewModel.barVisible = !viewModel.barVisible },
                         containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
@@ -231,7 +164,7 @@ object HomeUI {
                                     modifier = Modifier.weight(1f),
                                     painter = painterResource(R.drawable.action_bookmark),
                                     onClick = {
-                                        quickSetState = 2
+                                        viewModel.quickSetState = 2
                                         showBottomMenu = true
                                     }
                                 )
@@ -250,449 +183,12 @@ object HomeUI {
 
 
                 if (showBottomMenu) {
-
-                    ModalBottomSheet(
-                        modifier = Modifier.fillMaxHeight().offset(y = 54.dp),
-                        sheetState = sheetState,
-                        onDismissRequest = {
-                            showBottomMenu = false
-                            quickSetState = 0
-                        }
-                    ) {
-                        BackHandler {
-                            if (quickSetState == 0) {
-                                scope.launch {
-                                    sheetState.hide()
-                                }.invokeOnCompletion {
-                                    showBottomMenu = false
-                                }
-                            } else {
-                                quickSetState = 0
-                            }
-                        }
-                        AnimatedContent(
-                            targetState = quickSetState,
-                            modifier = Modifier.fillMaxSize(),
-                            transitionSpec = {
-                                // 判断是前进（下一页）还是后退（上一页）
-                                val isForward = targetState > initialState
-                                val slideDirection = if (isForward) {
-                                    AnimatedContentTransitionScope.SlideDirection.Left  // 前进：从右滑入
-                                } else {
-                                    AnimatedContentTransitionScope.SlideDirection.Right // 后退：从左滑入
-                                }
-
-                                // 应用动态方向
-                                (slideIntoContainer(towards = slideDirection, animationSpec = tween(300)) + fadeIn())
-                                    .togetherWith(
-                                        slideOutOfContainer(
-                                            towards = slideDirection,  // 旧内容往相同方向滑出
-                                            animationSpec = tween(600)
-                                        ) + fadeOut()
-                                    )
-                            }
-                        ) { state ->
-                            Column(Modifier.fillMaxSize()) {
-                                when(state) {
-                                    0 -> {
-                                        LazyVerticalGrid(
-                                            columns = GridCells.Fixed(5),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 14.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            items(quickSetItems) { item ->  // Replace with your actual data list
-                                                QuickSetItem(
-                                                    painter = painterResource(item.icon),  // Example icon
-                                                    text = item.title,
-                                                    id = item.id,
-                                                    onClick = { id ->
-                                                        when (id) {
-                                                            1 -> {
-                                                                openDownload(context)
-                                                            }
-
-                                                            2 -> {
-                                                                shareUrl(
-                                                                    context = context,
-                                                                    url = webViewRef?.url ?: ""
-                                                                )
-                                                                showBottomMenu = false
-                                                            }
-
-                                                            3 -> {
-                                                                viewModel.accessMode =
-                                                                    if (viewModel.accessMode == 0) 1 else 0
-                                                                webViewRef?.settings?.userAgentString =
-                                                                    if (viewModel.accessMode == 0) MOBILE_USER_AGENT else DESKTOP_USER_AGENT
-                                                                webViewRef?.reload()
-                                                            }
-
-                                                            4 -> {
-                                                                quickSetState = 1
-                                                            }
-
-                                                            5 -> {
-                                                                viewModel.darkMode =
-                                                                    (viewModel.darkMode + 1) % 3
-                                                                prefs.darkMode = viewModel.darkMode
-                                                            }
-
-                                                            6 -> {
-                                                                showShortcutDialog = true
-                                                            }
-
-                                                            7 -> {
-                                                                prefs.addBookmark(
-                                                                    BookmarkData(
-                                                                        id = 0,
-                                                                        url = webViewRef?.url
-                                                                            ?: "未知",
-                                                                        title = webViewRef?.title
-                                                                            ?: "未知"
-                                                                    )
-                                                                )
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "添加完成",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                            }
-
-                                                            8 -> {
-                                                                enabledFullscreenMode =
-                                                                    !enabledFullscreenMode
-                                                            }
-
-                                                            9 -> {
-                                                                quickSetState = 2
-                                                            }
-
-                                                            10 -> {
-                                                                val mode = (viewModel.NonPicture + 1) % 3
-                                                                viewModel.NonPicture = mode
-                                                                prefs.NonPicture = mode
-                                                                webViewRef?.reload()
-                                                            }
-
-                                                            11 -> {
-                                                                quickSetState = 3
-                                                            }
-                                                        }
-                                                    },
-                                                    enabled = item.enabled,
-                                                    switchMode = item.switchMode
-                                                )
-                                            }
-                                        }
-                                    }
-
-                                    1 -> {
-                                        var showHistoryType by remember { mutableIntStateOf(0) }
-                                        val historyItems = remember {
-                                            mutableStateListOf<HistoryItemData>().apply {
-                                                addAll(prefs.getHistory())
-                                            }
-                                        }
-                                        Row(
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .align(Alignment.Start)
-                                        ) {
-                                            IconButton(
-                                                onClick = { quickSetState = 0 },
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                            Spacer(Modifier.weight(1f))
-                                            IconButton(
-                                                onClick = {
-                                                    showHistoryType =
-                                                        if (showHistoryType == 0) 1 else 0
-                                                },
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Rounded.Menu,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                            IconButton(
-                                                onClick = {
-                                                    prefs.clearHistory()
-                                                    historyItems.clear()
-                                                },
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Rounded.Delete,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
-                                        if (historyItems.isNotEmpty()) {
-                                            LazyVerticalGrid(
-                                                columns = GridCells.Fixed(if (showHistoryType == 0) 2 else 1),
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .weight(1f)
-                                                    .padding(horizontal = 28.dp),
-                                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-
-                                                items(historyItems) { item ->  // Replace with your actual data list
-
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .background(
-                                                                color = MaterialTheme.colorScheme.primaryContainer,
-                                                                shape = MaterialTheme.shapes.medium
-                                                            )
-                                                            .clickable {
-                                                                viewModel.browserUrl = item.url
-                                                                viewModel.browserMode = 1
-                                                                quickSetState = 0
-                                                                showBottomMenu = false
-                                                            }
-                                                            .padding(4.dp),
-                                                        verticalArrangement = Arrangement.Center,
-                                                        horizontalAlignment = Alignment.Start
-                                                    ) {
-                                                        Text(
-                                                            text = item.title,
-                                                            maxLines = 1,
-                                                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            color = MaterialTheme.typography.titleSmall.color
-                                                        )
-                                                        Text(
-                                                            text = item.url,
-                                                            maxLines = 1,
-                                                            textAlign = TextAlign.Start,
-                                                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            color = MaterialTheme.typography.bodySmall.color
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            Text("没有历史哦~", Modifier.fillMaxWidth().weight(1f),
-                                                textAlign = TextAlign.Center)
-                                        }
-                                    }
-
-                                    2 -> {
-                                        var showBookmarkType by remember { mutableIntStateOf(0) }
-                                        val bookmarkItems = remember {
-                                            mutableStateListOf<BookmarkData>().apply {
-                                                addAll(prefs.getBookmark())
-                                            }
-                                        }
-                                        Row(
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            IconButton(
-                                                onClick = { quickSetState = 0 },
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                            Spacer(Modifier.weight(1f))
-                                            IconButton(
-                                                onClick = {
-                                                    showBookmarkType =
-                                                        if (showBookmarkType == 0) 1 else 0
-                                                },
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Rounded.Menu,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                            IconButton(
-                                                onClick = {
-                                                    prefs.clearBookmark()
-                                                    bookmarkItems.clear()
-                                                },
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Rounded.Delete,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
-                                        if (bookmarkItems.isNotEmpty()) {
-                                            LazyVerticalGrid(
-                                                columns = GridCells.Fixed(if (showBookmarkType == 0) 2 else 1),
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(horizontal = 28.dp),
-                                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-
-                                                items(bookmarkItems) { item ->  // Replace with your actual data list
-
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .background(
-                                                                color = MaterialTheme.colorScheme.primaryContainer,
-                                                                shape = MaterialTheme.shapes.medium
-                                                            )
-                                                            .clickable {
-                                                                viewModel.browserUrl = item.url
-                                                                viewModel.browserMode = 1
-                                                                quickSetState = 0
-                                                                showBottomMenu = false
-                                                            }
-                                                            .padding(4.dp),
-                                                        verticalArrangement = Arrangement.Center,
-                                                        horizontalAlignment = Alignment.Start
-                                                    ) {
-                                                        Text(
-                                                            text = item.title,
-                                                            maxLines = 1,
-                                                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            color = MaterialTheme.typography.titleSmall.color
-                                                        )
-                                                        Text(
-                                                            text = item.url,
-                                                            maxLines = 1,
-                                                            textAlign = TextAlign.Start,
-                                                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            color = MaterialTheme.typography.bodySmall.color
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            Text("没有书签哦~", Modifier.fillMaxWidth().weight(1f),
-                                                textAlign = TextAlign.Center)
-                                        }
-                                    }
-
-                                    //diff
-                                    3 -> {
-                                        val resItems = remember {
-                                            mutableStateListOf<String>()
-                                        }
-
-                                        LaunchedEffect(webViewRef) { // 使用 LaunchedEffect 确保只在特定条件下调用
-                                            webViewRef?.evaluateJavascript(
-                                                "javascript:Array.from(document.getElementsByTagName('img')).map(img => img.src)",
-                                                object : ValueCallback<String?> {
-                                                    override fun onReceiveValue(value: String?) {
-                                                        value?.let {
-                                                            try {
-                                                                val imageUrlArray = JSONArray(it)
-                                                                for (i in 0 until imageUrlArray.length()) {
-                                                                    val imageUrl = imageUrlArray.getString(i)
-                                                                    Log.d("WebView", "Image URL: $imageUrl")
-                                                                    if (!resItems.contains(imageUrl)) { // 避免重复添加
-                                                                        resItems.add(imageUrl)
-                                                                    }
-                                                                }
-                                                            } catch (e: Exception) {
-                                                                Log.e("WebView", "Error parsing JSON: ${e.message}")
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                        }
-
-                                        Row(
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            IconButton(
-                                                onClick = { quickSetState = 0 },
-                                                modifier = Modifier.padding(horizontal = 16.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
-                                        if (resItems.isNotEmpty()) {
-                                            LazyVerticalGrid(
-                                                columns = GridCells.Fixed( 1),
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(horizontal = 28.dp),
-                                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-
-                                                items(resItems) { item ->  // Replace with your actual data list
-
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .background(
-                                                                color = MaterialTheme.colorScheme.primaryContainer,
-                                                                shape = MaterialTheme.shapes.medium
-                                                            )
-                                                            .clickable {
-                                                                viewModel.browserUrl = item
-                                                                viewModel.browserMode = 1
-                                                                quickSetState = 0
-                                                                showBottomMenu = false
-                                                            }
-                                                            .padding(4.dp),
-                                                        verticalArrangement = Arrangement.Center,
-                                                        horizontalAlignment = Alignment.Start
-                                                    ) {
-                                                        val imageUrl = item
-                                                        if (imageUrl.isNotEmpty()) {
-                                                            AsyncImage(
-                                                                model = imageUrl,
-                                                                contentDescription = null,
-                                                                modifier = Modifier
-                                                                    .fillMaxWidth()
-                                                                    .height(200.dp)
-                                                                    .padding(8.dp)
-                                                            )
-                                                        } else {
-                                                            Text(text = "图片加载失败", modifier = Modifier.padding(8.dp))
-                                                        }
-                                                        Text(
-                                                            text = item,
-                                                            maxLines = 1,
-                                                            textAlign = TextAlign.Start,
-                                                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            color = MaterialTheme.typography.bodySmall.color
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            Text("没有资源哦~", Modifier.fillMaxWidth().weight(1f),
-                                                textAlign = TextAlign.Center)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    ToolUI.ToolSheet(
+                        onDismiss = {showBottomMenu = false},
+                        webViewRef = webViewRef,
+                        context = context,
+                        showShortcutDialog = {showShortcutDialog = true}
+                    )
                 }
 
                 if (showShortcutDialog) {
@@ -761,7 +257,6 @@ object HomeUI {
                                 )
                             }
 
-                            // 自定义对话框
                             AnimatedVisibility(
                                 visible = showCustom,
                                 modifier = Modifier
@@ -825,11 +320,6 @@ object HomeUI {
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .clickable(
-                                            onClick = {
-
-                                            }
-                                        )
                                         .align(Alignment.CenterVertically)
                                         .padding(start = 16.dp)
                                         .size(25.5.dp)
@@ -847,6 +337,7 @@ object HomeUI {
                                         tint = MaterialTheme.colorScheme.surface
                                     )
                                 }
+                                var searchText by remember { mutableStateOf(" ") }
                                 BasicTextField(
                                     value = searchText,
                                     onValueChange = { searchText = it.ifEmpty { " " } },
@@ -861,10 +352,7 @@ object HomeUI {
                                     ),
                                     singleLine = true,
                                     keyboardActions = KeyboardActions(
-                                        onDone = {
-                                            viewModel.setUrlWithEngine(searchText)
-                                            viewModel.browserMode = 1
-                                        }
+                                        onDone = { viewModel.searchWithEngine(searchText) }
                                     ),
                                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
                                 )
@@ -1130,6 +618,82 @@ object HomeUI {
                 contentDescription = null,
                 modifier = Modifier.size(26.5.dp)
             )
+        }
+    }
+
+    @Composable
+    fun CommonItem(
+        title : String = "None",
+        body : String = "null",
+        onClick: () -> Unit
+    ){
+        Column(
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = MaterialTheme.shapes.medium
+                )
+                .clickable { onClick() }
+                .padding(4.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = title,
+                maxLines = 1,
+                fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.typography.titleSmall.color
+            )
+            Text(
+                text = body,
+                maxLines = 1,
+                textAlign = TextAlign.Start,
+                fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.typography.bodySmall.color
+            )
+        }
+    }
+
+    @Composable
+    fun CommonToolBar(
+        onDismissRequest: () -> Unit,
+        onSwitch : () -> Unit,
+        onClear : () -> Unit
+    ){
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            IconButton(
+                onClick = { onDismissRequest() },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = null
+                )
+            }
+            Spacer(Modifier.weight(1f))
+            IconButton(
+                onClick = { onSwitch() },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Menu,
+                    contentDescription = null
+                )
+            }
+            IconButton(
+                onClick = { onClear() },
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Delete,
+                    contentDescription = null
+                )
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ class PreferenceHelper(context: Context) {
         context.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
     private val gson = Gson()
 
-    // 快速链接开关状态
+    //bool
     var enabledQuickLink: Boolean
         get() = sharedPref.getBoolean("KEY_ENABLED_QUICK_LINK", true)
         set(value) = sharedPref.edit { putBoolean("KEY_ENABLED_QUICK_LINK", value) }
@@ -21,6 +21,11 @@ class PreferenceHelper(context: Context) {
         get() = sharedPref.getInt("KEY_DARKMODE", 0)
         set(value) = sharedPref.edit { putInt("KEY_DARKMODE", value) }
 
+    var NonPicture: Int
+        get() = sharedPref.getInt("KEY_NONPICTURE", 0)
+        set(value) = sharedPref.edit { putInt("KEY_NONPICTURE", value) }
+
+    //list
     fun addQuickLink(item: QuickLinkData): Boolean {
         val currentList = getQuickLinks().toMutableList()
         currentList.add(item)
@@ -45,11 +50,11 @@ class PreferenceHelper(context: Context) {
         return if (json.isNullOrEmpty()) {
             // 默认书签数据
             listOf(
-                QuickLinkData(1, "必应", "https://www.bing.com/", R.drawable.action_bookmark),
-                QuickLinkData(2, "小米", "https://www.mi.com/", R.drawable.action_bookmark),
-                QuickLinkData(3, "Github", "https://github.com/", R.drawable.action_bookmark),
-                QuickLinkData(4, "Dick", "https://deepseek.com/", R.drawable.action_bookmark),
-                QuickLinkData(5, "太极", "https://kernelsu.org/", R.drawable.action_bookmark),
+                QuickLinkData(1, "微软", "https://www.microsoft.com/", R.drawable.action_bookmark),
+                QuickLinkData(2, "电报", "https://web.telegram.org/k/", R.drawable.action_bookmark),
+                QuickLinkData(3, "饭桶", "https://github.com/", R.drawable.action_bookmark),
+                QuickLinkData(4, "深求", "https://deepseek.com/", R.drawable.action_bookmark),
+                QuickLinkData(5, "核根", "https://kernelsu.org/", R.drawable.action_bookmark),
                 QuickLinkData(6, "酷安", "https://www.coolapk.com/", R.drawable.action_bookmark)
             )
         } else {
@@ -70,9 +75,7 @@ class PreferenceHelper(context: Context) {
     fun getHistory(): List<HistoryItemData> {
         val json = sharedPref.getString("KEY_HISTORY", null)
         return if (json.isNullOrEmpty()) {
-            listOf(
-                HistoryItemData(id = 0, url = "示例网址", title = "示例记录")
-            )
+            listOf()
         } else {
             val type = object : TypeToken<List<HistoryItemData>>() {}.type
             gson.fromJson(json, type) ?: emptyList()
@@ -99,9 +102,7 @@ class PreferenceHelper(context: Context) {
     fun getBookmark(): List<BookmarkData> {
         val json = sharedPref.getString("KEY_BOOKMARK", null)
         return if (json.isNullOrEmpty()) {
-            listOf(
-                BookmarkData(id = 0, url = "示例网址", title = "示例书签")
-            )
+            listOf()
         } else {
             val type = object : TypeToken<List<BookmarkData>>() {}.type
             gson.fromJson(json, type) ?: emptyList()

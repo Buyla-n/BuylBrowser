@@ -131,6 +131,13 @@ object HomeUI {
                 else -> "夜间模式"
             }
 
+        val nonPictureTitle =
+            when (viewModel.NonPicture){
+                0 -> "有图"
+                1 -> "节流"
+                else -> "无图"
+            }
+
         val quickLinkItems = remember {
             mutableStateListOf<QuickLinkData>().apply {
                 addAll(prefs.getQuickLinks())
@@ -156,7 +163,8 @@ object HomeUI {
                 QuickSetData(id = 6, icon = R.drawable.action_shortcut, title = "加到桌面", enabled = viewModel.browserMode == 1),
                 QuickSetData(id = 7, icon = R.drawable.action_add_bookmark, title = "添加书签", enabled = viewModel.browserMode == 1),
                 QuickSetData(id = 8, icon = R.drawable.action_fullscreen, title = "全屏", enabled = enabledFullscreenMode, switchMode = true),
-                //QuickSetData(id = 9, icon = R.drawable.action_find, title = "页面查找", enabled = viewModel.browserMode == 1),
+                QuickSetData(id = 9, icon = R.drawable.action_bookmark, title = "书签"),
+                QuickSetData(id = 10, icon = R.drawable.action_nopicture, title = nonPictureTitle.toString()),
             )
 
         Scaffold(
@@ -273,7 +281,7 @@ object HomeUI {
                                     .togetherWith(
                                         slideOutOfContainer(
                                             towards = slideDirection,  // 旧内容往相同方向滑出
-                                            animationSpec = tween(100)
+                                            animationSpec = tween(600)
                                         ) + fadeOut()
                                     )
                             }
@@ -351,6 +359,17 @@ object HomeUI {
                                                                 enabledFullscreenMode =
                                                                     !enabledFullscreenMode
                                                             }
+
+                                                            9 -> {
+                                                                quickSetState = 2
+                                                            }
+
+                                                            10 -> {
+                                                                val mode = (viewModel.NonPicture + 1) % 3
+                                                                viewModel.NonPicture = mode
+                                                                prefs.NonPicture = mode
+                                                                webViewRef?.reload()
+                                                            }
                                                         }
                                                     },
                                                     enabled = item.enabled,
@@ -408,51 +427,56 @@ object HomeUI {
                                                 )
                                             }
                                         }
-                                        LazyVerticalGrid(
-                                            columns = GridCells.Fixed(if (showHistoryType == 0) 2 else 1),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .weight(1f)
-                                                .padding(horizontal = 28.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
+                                        if (historyItems.isNotEmpty()) {
+                                            LazyVerticalGrid(
+                                                columns = GridCells.Fixed(if (showHistoryType == 0) 2 else 1),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .weight(1f)
+                                                    .padding(horizontal = 28.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
 
-                                            items(historyItems) { item ->  // Replace with your actual data list
+                                                items(historyItems) { item ->  // Replace with your actual data list
 
-                                                Column(
-                                                    modifier = Modifier
-                                                        .background(
-                                                            color = MaterialTheme.colorScheme.primaryContainer,
-                                                            shape = MaterialTheme.shapes.medium
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .background(
+                                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                                shape = MaterialTheme.shapes.medium
+                                                            )
+                                                            .clickable {
+                                                                viewModel.browserUrl = item.url
+                                                                viewModel.browserMode = 1
+                                                                quickSetState = 0
+                                                                showBottomMenu = false
+                                                            }
+                                                            .padding(4.dp),
+                                                        verticalArrangement = Arrangement.Center,
+                                                        horizontalAlignment = Alignment.Start
+                                                    ) {
+                                                        Text(
+                                                            text = item.title,
+                                                            maxLines = 1,
+                                                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            color = MaterialTheme.typography.titleSmall.color
                                                         )
-                                                        .clickable {
-                                                            viewModel.browserUrl = item.url
-                                                            viewModel.browserMode = 1
-                                                            quickSetState = 0
-                                                            showBottomMenu = false
-                                                        }
-                                                        .padding(4.dp),
-                                                    verticalArrangement = Arrangement.Center,
-                                                    horizontalAlignment = Alignment.Start
-                                                ) {
-                                                    Text(
-                                                        text = item.title,
-                                                        maxLines = 1,
-                                                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                        color = MaterialTheme.typography.titleSmall.color
-                                                    )
-                                                    Text(
-                                                        text = item.url,
-                                                        maxLines = 1,
-                                                        textAlign = TextAlign.Start,
-                                                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                        color = MaterialTheme.typography.bodySmall.color
-                                                    )
+                                                        Text(
+                                                            text = item.url,
+                                                            maxLines = 1,
+                                                            textAlign = TextAlign.Start,
+                                                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            color = MaterialTheme.typography.bodySmall.color
+                                                        )
+                                                    }
                                                 }
                                             }
+                                        } else {
+                                            Text("没有历史哦~", Modifier.fillMaxWidth().weight(1f),
+                                                textAlign = TextAlign.Center)
                                         }
                                     }
 
@@ -502,50 +526,55 @@ object HomeUI {
                                                 )
                                             }
                                         }
-                                        LazyVerticalGrid(
-                                            columns = GridCells.Fixed(if (showBookmarkType == 0) 2 else 1),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 28.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
+                                        if (bookmarkItems.isNotEmpty()) {
+                                            LazyVerticalGrid(
+                                                columns = GridCells.Fixed(if (showBookmarkType == 0) 2 else 1),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 28.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
 
-                                            items(bookmarkItems) { item ->  // Replace with your actual data list
+                                                items(bookmarkItems) { item ->  // Replace with your actual data list
 
-                                                Column(
-                                                    modifier = Modifier
-                                                        .background(
-                                                            color = MaterialTheme.colorScheme.primaryContainer,
-                                                            shape = MaterialTheme.shapes.medium
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .background(
+                                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                                shape = MaterialTheme.shapes.medium
+                                                            )
+                                                            .clickable {
+                                                                viewModel.browserUrl = item.url
+                                                                viewModel.browserMode = 1
+                                                                quickSetState = 0
+                                                                showBottomMenu = false
+                                                            }
+                                                            .padding(4.dp),
+                                                        verticalArrangement = Arrangement.Center,
+                                                        horizontalAlignment = Alignment.Start
+                                                    ) {
+                                                        Text(
+                                                            text = item.title,
+                                                            maxLines = 1,
+                                                            fontSize = MaterialTheme.typography.titleSmall.fontSize,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            color = MaterialTheme.typography.titleSmall.color
                                                         )
-                                                        .clickable {
-                                                            viewModel.browserUrl = item.url
-                                                            viewModel.browserMode = 1
-                                                            quickSetState = 0
-                                                            showBottomMenu = false
-                                                        }
-                                                        .padding(4.dp),
-                                                    verticalArrangement = Arrangement.Center,
-                                                    horizontalAlignment = Alignment.Start
-                                                ) {
-                                                    Text(
-                                                        text = item.title,
-                                                        maxLines = 1,
-                                                        fontSize = MaterialTheme.typography.titleSmall.fontSize,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                        color = MaterialTheme.typography.titleSmall.color
-                                                    )
-                                                    Text(
-                                                        text = item.url,
-                                                        maxLines = 1,
-                                                        textAlign = TextAlign.Start,
-                                                        fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                        color = MaterialTheme.typography.bodySmall.color
-                                                    )
+                                                        Text(
+                                                            text = item.url,
+                                                            maxLines = 1,
+                                                            textAlign = TextAlign.Start,
+                                                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            color = MaterialTheme.typography.bodySmall.color
+                                                        )
+                                                    }
                                                 }
                                             }
+                                        } else {
+                                            Text("没有书签哦~", Modifier.fillMaxWidth().weight(1f),
+                                                textAlign = TextAlign.Center)
                                         }
                                     }
                                 }

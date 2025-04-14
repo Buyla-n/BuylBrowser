@@ -1,9 +1,7 @@
 package com.xiaomi.browser
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -31,6 +29,7 @@ class BrowserActivity : ComponentActivity() {
         handleIntent(intent)
 
         viewModel.darkMode = PreferenceHelper(context = this).darkMode
+        viewModel.NonPicture = PreferenceHelper(this).NonPicture
 
         setContent {
             BrowserTheme {

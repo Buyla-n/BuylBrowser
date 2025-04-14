@@ -1,6 +1,8 @@
 package com.xiaomi.browser.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.net.ConnectivityManager
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -93,13 +95,13 @@ object WebUI {
                 webViewClient = WebViewClient()
 
                 with(settings) {
+                    loadsImagesAutomatically = viewModel.NonPicture == 0 || (viewModel.NonPicture == 1 && !isMetered(context))
                     javaScriptEnabled = true
                     javaScriptCanOpenWindowsAutomatically = true
                     domStorageEnabled = true
                     mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                     loadWithOverviewMode = true
                     useWideViewPort = true
-                    loadsImagesAutomatically = true
                     allowContentAccess = true
                     allowFileAccess = true
                     layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
@@ -107,6 +109,7 @@ object WebUI {
                     userAgentString = if (viewModel.accessMode == 0) MOBILE_USER_AGENT else DESKTOP_USER_AGENT
                     builtInZoomControls = true
                     displayZoomControls = false // 隐藏原生缩放控件（可选）
+                    //blockNetworkImage = viewModel.NonPicture == 2 || (viewModel.NonPicture == 1 && isMetered(context))
                     setSupportZoom(true)
                 }
 
@@ -374,5 +377,18 @@ object WebUI {
         )
     }
 
+    fun isMetered(context: Context): Boolean {
+        var mobileDataEnabled = false
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        try {
+            val cmClass = Class.forName(cm.javaClass.getName())
+            val method = cmClass.getDeclaredMethod("getMobileDataEnabled")
+            method.isAccessible = true
+            mobileDataEnabled = (method.invoke(cm) as Boolean?)!!
+        } catch (e: Exception) {
+
+        }
+        return mobileDataEnabled
+    }
 
 }

@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
+import android.util.Log
+import android.webkit.ValueCallback
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -88,6 +90,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.xiaomi.browser.R
 import com.xiaomi.browser.ui.WebUI.BrowserWeb
 import com.xiaomi.browser.util.BookmarkData
@@ -102,6 +105,8 @@ import com.xiaomi.browser.util.Util.openDownload
 import com.xiaomi.browser.util.Util.shareUrl
 import com.xiaomi.browser.util.WebViewState
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import kotlin.text.isNotEmpty
 
 object HomeUI {
     @SuppressLint("UnusedContentLambdaTargetStateParameter")
@@ -165,6 +170,7 @@ object HomeUI {
                 QuickSetData(id = 8, icon = R.drawable.action_fullscreen, title = "全屏", enabled = enabledFullscreenMode, switchMode = true),
                 QuickSetData(id = 9, icon = R.drawable.action_bookmark, title = "书签"),
                 QuickSetData(id = 10, icon = R.drawable.action_nopicture, title = nonPictureTitle.toString()),
+                QuickSetData(id = 11, icon = R.drawable.action_diff, title = "资源")
             )
 
         Scaffold(
@@ -370,6 +376,10 @@ object HomeUI {
                                                                 prefs.NonPicture = mode
                                                                 webViewRef?.reload()
                                                             }
+
+                                                            11 -> {
+                                                                quickSetState = 3
+                                                            }
                                                         }
                                                     },
                                                     enabled = item.enabled,
@@ -574,6 +584,108 @@ object HomeUI {
                                             }
                                         } else {
                                             Text("没有书签哦~", Modifier.fillMaxWidth().weight(1f),
+                                                textAlign = TextAlign.Center)
+                                        }
+                                    }
+
+                                    //diff
+                                    3 -> {
+                                        val resItems = remember {
+                                            mutableStateListOf<String>()
+                                        }
+
+                                        LaunchedEffect(webViewRef) { // 使用 LaunchedEffect 确保只在特定条件下调用
+                                            webViewRef?.evaluateJavascript(
+                                                "javascript:Array.from(document.getElementsByTagName('img')).map(img => img.src)",
+                                                object : ValueCallback<String?> {
+                                                    override fun onReceiveValue(value: String?) {
+                                                        value?.let {
+                                                            try {
+                                                                val imageUrlArray = JSONArray(it)
+                                                                for (i in 0 until imageUrlArray.length()) {
+                                                                    val imageUrl = imageUrlArray.getString(i)
+                                                                    Log.d("WebView", "Image URL: $imageUrl")
+                                                                    if (!resItems.contains(imageUrl)) { // 避免重复添加
+                                                                        resItems.add(imageUrl)
+                                                                    }
+                                                                }
+                                                            } catch (e: Exception) {
+                                                                Log.e("WebView", "Error parsing JSON: ${e.message}")
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            )
+                                        }
+
+                                        Row(
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            IconButton(
+                                                onClick = { quickSetState = 0 },
+                                                modifier = Modifier.padding(horizontal = 16.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+                                        if (resItems.isNotEmpty()) {
+                                            LazyVerticalGrid(
+                                                columns = GridCells.Fixed( 1),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 28.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+
+                                                items(resItems) { item ->  // Replace with your actual data list
+
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .background(
+                                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                                shape = MaterialTheme.shapes.medium
+                                                            )
+                                                            .clickable {
+                                                                viewModel.browserUrl = item
+                                                                viewModel.browserMode = 1
+                                                                quickSetState = 0
+                                                                showBottomMenu = false
+                                                            }
+                                                            .padding(4.dp),
+                                                        verticalArrangement = Arrangement.Center,
+                                                        horizontalAlignment = Alignment.Start
+                                                    ) {
+                                                        val imageUrl = item
+                                                        if (imageUrl.isNotEmpty()) {
+                                                            AsyncImage(
+                                                                model = imageUrl,
+                                                                contentDescription = null,
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .height(200.dp)
+                                                                    .padding(8.dp)
+                                                            )
+                                                        } else {
+                                                            Text(text = "图片加载失败", modifier = Modifier.padding(8.dp))
+                                                        }
+                                                        Text(
+                                                            text = item,
+                                                            maxLines = 1,
+                                                            textAlign = TextAlign.Start,
+                                                            fontSize = MaterialTheme.typography.bodySmall.fontSize,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            color = MaterialTheme.typography.bodySmall.color
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            Text("没有资源哦~", Modifier.fillMaxWidth().weight(1f),
                                                 textAlign = TextAlign.Center)
                                         }
                                     }

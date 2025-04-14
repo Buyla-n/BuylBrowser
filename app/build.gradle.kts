@@ -62,4 +62,5 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
     implementation ("com.google.code.gson:gson:2.12.1")
     implementation("androidx.webkit:webkit:1.13.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
 }

@@ -3,9 +3,7 @@ package com.xiaomi.browser.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
-import android.util.Log
 import android.webkit.CookieManager
-import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -29,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
@@ -49,7 +46,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,7 +57,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
 import com.xiaomi.browser.util.BrowserViewModel
 import com.xiaomi.browser.util.HistoryItemData
 import com.xiaomi.browser.util.PreferenceHelper
@@ -69,7 +64,6 @@ import com.xiaomi.browser.util.Util.DESKTOP_USER_AGENT
 import com.xiaomi.browser.util.Util.MOBILE_USER_AGENT
 import com.xiaomi.browser.util.Util.startDownload
 import com.xiaomi.browser.util.WebViewState
-import org.json.JSONArray
 
 
 object WebUI {
@@ -94,7 +88,7 @@ object WebUI {
         var downloadUrl by remember { mutableStateOf("") }
 
         val pref = PreferenceHelper(context)
-        var showInfoSheet by remember { mutableStateOf(false) }
+        //var showInfoSheet by remember { mutableStateOf(false) }
 
         var webView = remember {
             WebView(context).apply {
@@ -391,7 +385,7 @@ object WebUI {
             val method = cmClass.getDeclaredMethod("getMobileDataEnabled")
             method.isAccessible = true
             mobileDataEnabled = (method.invoke(cm) as Boolean?)!!
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
         }
         return mobileDataEnabled

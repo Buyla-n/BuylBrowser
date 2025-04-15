@@ -1,7 +1,6 @@
 package com.xiaomi.browser.ui
 
 import android.content.Context
-import android.util.Log
 import android.webkit.ValueCallback
 import android.webkit.WebView
 import android.widget.Toast
@@ -12,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,16 +23,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -45,12 +51,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
+import coil.ImageLoader
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.VideoFrameDecoder
+import coil.request.ImageRequest
+import coil.request.videoFrameMillis
 import com.xiaomi.browser.R
 import com.xiaomi.browser.ui.HomeUI.CommonItem
 import com.xiaomi.browser.ui.HomeUI.CommonToolBar
@@ -64,6 +79,7 @@ import com.xiaomi.browser.util.Util.DESKTOP_USER_AGENT
 import com.xiaomi.browser.util.Util.MOBILE_USER_AGENT
 import com.xiaomi.browser.util.Util.openDownload
 import com.xiaomi.browser.util.Util.shareUrl
+import com.xiaomi.browser.util.Util.startDownload
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 
@@ -156,7 +172,7 @@ object ToolUI {
                         )
                 }
             ) { state ->
-                Column(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxSize().padding(bottom = 54.dp)) {
                     when(state) {
                         0 -> {
                             LazyVerticalGrid(
@@ -304,9 +320,19 @@ object ToolUI {
                                 mutableStateListOf<String>()
                             }
 
-                            LaunchedEffect(webViewRef) { // 使用 LaunchedEffect 确保只在特定条件下调用
+                            val tabs = listOf("图片", "视频", "音频")
+                            //0 image 1 video 2 audio
+                            var selectedTabIndex by remember { mutableIntStateOf(0) }
+
+                            LaunchedEffect(webViewRef, selectedTabIndex) { // 使用 LaunchedEffect 确保只在特定条件下调用
+                                val kind =
+                                    when(selectedTabIndex){
+                                        0 -> "img"
+                                        1 -> "video"
+                                        else -> "audio"
+                                    }
                                 webViewRef?.evaluateJavascript(
-                                    "javascript:Array.from(document.getElementsByTagName('img')).map(img => img.src)",
+                                    "javascript:Array.from(document.getElementsByTagName('$kind')).map($kind => $kind.src)",
                                     object : ValueCallback<String?> {
                                         override fun onReceiveValue(value: String?) {
                                             value?.let {
@@ -314,13 +340,12 @@ object ToolUI {
                                                     val imageUrlArray = JSONArray(it)
                                                     for (i in 0 until imageUrlArray.length()) {
                                                         val imageUrl = imageUrlArray.getString(i)
-                                                        Log.d("WebView", "Image URL: $imageUrl")
                                                         if (!resItems.contains(imageUrl)) { // 避免重复添加
                                                             resItems.add(imageUrl)
                                                         }
                                                     }
                                                 } catch (e: Exception) {
-                                                    Log.e("WebView", "Error parsing JSON: ${e.message}")
+                                                    Toast.makeText(context, "程序错误: ${e.message}", Toast.LENGTH_SHORT).show()
                                                 }
                                             }
                                         }
@@ -341,20 +366,33 @@ object ToolUI {
                                         contentDescription = null
                                     )
                                 }
+                                PrimaryTabRow(
+                                    selectedTabIndex = selectedTabIndex,
+                                    modifier = Modifier.padding(end = 16.dp).height(44.dp),
+                                    containerColor = Color.Transparent
+                                ) {
+                                    tabs.forEachIndexed { index, title ->
+                                        Tab(
+                                            selected = selectedTabIndex == index,
+                                            onClick = { selectedTabIndex = index .also { resItems.clear() } },
+                                            text = { Text(text = title) }
+                                        )
+                                    }
+                                }
                             }
                             if (resItems.isNotEmpty()) {
                                 LazyVerticalGrid(
                                     columns = GridCells.Fixed( 1),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 28.dp),
+                                        .padding(start = 28.dp, top = 18.dp, end = 28.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
 
                                     items(resItems) { item ->  // Replace with your actual data list
 
-                                        Column(
+                                        Row(
                                             modifier = Modifier
                                                 .background(
                                                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -366,20 +404,80 @@ object ToolUI {
                                                     viewModel.quickSetState = 0
                                                     onDismiss()
                                                 }
-                                                .padding(4.dp),
-                                            verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.Start
+                                                .padding(4.dp)
+                                                .height(48.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             val imageUrl = item
                                             if (imageUrl.isNotEmpty()) {
-                                                AsyncImage(
-                                                    model = imageUrl,
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(200.dp)
-                                                        .padding(8.dp)
-                                                )
+                                                when(selectedTabIndex) {
+                                                    0 -> {
+                                                        val painter = rememberAsyncImagePainter(
+                                                            model = ImageRequest.Builder(LocalContext.current)
+                                                                .data(imageUrl)
+                                                                .build()
+                                                        )
+                                                        when(painter.state){
+                                                            is AsyncImagePainter.State.Loading -> CircularProgressIndicator()
+
+                                                            is AsyncImagePainter.State.Error -> {
+                                                                Icon(imageVector = Icons.Rounded.Warning, contentDescription = null,
+                                                                    Modifier.padding(8.dp))
+                                                            }
+                                                            else -> {}
+                                                        }
+
+                                                        Image(
+                                                            painter = painter,
+                                                            contentDescription = null,
+                                                            modifier = Modifier
+                                                                .size(48.dp)
+                                                                .padding(8.dp)
+                                                                .clip(RoundedCornerShape(8.dp)),
+                                                            contentScale = ContentScale.Fit
+                                                        )
+                                                    }
+                                                    1 -> {
+                                                        val imageLoader = ImageLoader.Builder(context)
+                                                            .components {
+                                                                add(VideoFrameDecoder.Factory())
+                                                            }
+                                                            .build()
+
+                                                        val imageRequest = ImageRequest.Builder(LocalContext.current)
+                                                            .data(imageUrl)
+                                                            .crossfade(true)
+                                                            .apply{
+                                                                //显示视频距离0秒最近的关键帧
+                                                                videoFrameMillis(1)
+                                                            }
+                                                            .build()
+
+                                                        val painter = rememberAsyncImagePainter(model  = imageRequest,
+                                                            imageLoader = imageLoader)
+
+                                                        when(painter.state){
+                                                            is AsyncImagePainter.State.Loading -> CircularProgressIndicator()
+
+                                                            is AsyncImagePainter.State.Error -> {
+                                                                Icon(imageVector = Icons.Rounded.Warning, contentDescription = null,
+                                                                    Modifier.padding(8.dp))
+                                                            }
+                                                            else -> {}
+                                                        }
+
+                                                        Image(
+                                                            painter = painter,
+                                                            modifier = Modifier
+                                                                .height(48.dp)
+                                                                .padding(8.dp)
+                                                                .clip(MaterialTheme.shapes.medium),
+                                                            contentDescription = "VideoFrame",
+                                                            contentScale = ContentScale.Fit,
+                                                        )
+                                                    }
+                                                }
                                             } else {
                                                 Text(text = "图片加载失败", modifier = Modifier.padding(8.dp))
                                             }
@@ -389,13 +487,20 @@ object ToolUI {
                                                 textAlign = TextAlign.Start,
                                                 fontSize = MaterialTheme.typography.bodySmall.fontSize,
                                                 overflow = TextOverflow.Ellipsis,
-                                                color = MaterialTheme.typography.bodySmall.color
+                                                color = MaterialTheme.typography.bodySmall.color,
+                                                modifier = Modifier.weight(1f)
                                             )
+                                            androidx.compose.material3.Button(
+                                                onClick = { startDownload(context, imageUrl) },
+                                                modifier = Modifier.height(36.dp).padding(end = 8.dp)
+                                            ) {
+                                                Text("下载")
+                                            }
                                         }
                                     }
                                 }
                             } else {
-                                Text("没有资源哦~", Modifier.fillMaxWidth().weight(1f),
+                                Text("\n\n没有资源哦~", Modifier.fillMaxWidth().weight(1f),
                                     textAlign = TextAlign.Center)
                             }
                         }

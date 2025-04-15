@@ -12,8 +12,8 @@ android {
         applicationId = "com.xiaomi.browser"
         minSdk = 31
         targetSdk = 35
-        versionCode = 13
-        versionName = "0.1.3"
+        versionCode = 14
+        versionName = "0.1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -58,9 +58,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
-    implementation ("com.google.code.gson:gson:2.12.1")
-    implementation("androidx.webkit:webkit:1.13.0")
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation (libs.androidx.lifecycle.viewmodel.compose)
+    implementation (libs.androidx.lifecycle.runtime.compose)
+    implementation (libs.gson)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.video)
 }

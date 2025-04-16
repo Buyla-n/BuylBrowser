@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -81,7 +82,7 @@ import com.xiaomi.browser.R
 import com.xiaomi.browser.ui.WebUI.BrowserWeb
 import com.xiaomi.browser.util.BrowserViewModel
 import com.xiaomi.browser.util.PreferenceHelper
-import com.xiaomi.browser.util.QuickLinkData
+import com.xiaomi.browser.data.QuickLinkData
 import com.xiaomi.browser.util.WebViewState
 
 object HomeUI {
@@ -318,24 +319,41 @@ object HomeUI {
                                         shape = RoundedCornerShape(16.dp)
                                     )
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterVertically)
-                                        .padding(start = 16.dp)
-                                        .size(25.5.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.primaryContainer,
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
+                                AnimatedContent(
+                                    targetState = !viewModel.incognitoMode,
+                                    modifier = Modifier.align(Alignment.CenterVertically)
                                 ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_search),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .padding(3.6299744.dp)
-                                            .align(Alignment.Center),
-                                        tint = MaterialTheme.colorScheme.surface
-                                    )
+                                    if (it) {
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(start = 16.dp)
+                                                .size(25.5.dp)
+                                                .background(
+                                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                                    shape = RoundedCornerShape(16.dp)
+                                                )
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.ic_search),
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .padding(3.6299744.dp)
+                                                    .align(Alignment.Center),
+                                                tint = MaterialTheme.colorScheme.surface
+                                            )
+                                        }
+                                    } else {
+                                        Image(
+                                            painter = painterResource(R.drawable.icon_incognito),
+                                            contentDescription = null,
+                                            modifier = Modifier.padding(
+                                                start = 16.dp,
+                                                end = 3.6.dp,
+                                                top = 3.6.dp,
+                                                bottom = 3.6.dp
+                                            ).size(25.5.dp)
+                                        )
+                                    }
                                 }
                                 var searchText by remember { mutableStateOf(" ") }
                                 BasicTextField(
@@ -509,9 +527,7 @@ object HomeUI {
                 modifier = Modifier
                     .size(40.dp)  // 调整背景大小
                     .background(
-                        if (enabled) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.secondaryContainer.copy(
-                            alpha = 0.5f
-                        ),
+                        if (enabled) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
                         RoundedCornerShape(45.dp)
                     ),
                 contentAlignment = Alignment.Center

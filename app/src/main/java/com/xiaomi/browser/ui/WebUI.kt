@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
@@ -54,12 +55,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.xiaomi.browser.R
+import com.xiaomi.browser.data.HistoryItemData
 import com.xiaomi.browser.util.BrowserViewModel
-import com.xiaomi.browser.util.HistoryItemData
 import com.xiaomi.browser.util.PreferenceHelper
 import com.xiaomi.browser.util.Util.DESKTOP_USER_AGENT
 import com.xiaomi.browser.util.Util.MOBILE_USER_AGENT
@@ -170,8 +173,6 @@ object WebUI {
                 onWebViewCreated(webView) // 创建后把 WebView 传回给父组件
             }
         }
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
-        CookieManager.getInstance().setAcceptCookie(true)
         WebView.setWebContentsDebuggingEnabled(true) // 允许 Chrome 远程调试
         Scaffold(
             contentWindowInsets = WindowInsets(bottom = 0),
@@ -231,13 +232,28 @@ object WebUI {
                                 LaunchedEffect(viewModel.browserUrl) {
                                     searchUrlText = viewModel.browserUrl
                                 }
+                                if (viewModel.incognitoMode) {
+                                    IconButton(
+                                        onClick = {
+
+                                        },
+                                        Modifier.weight(0.7f)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.icon_incognito_outlined),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(28.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
                                 BasicTextField(
                                     value = searchUrlText,
                                     onValueChange = { searchUrlText = it.ifEmpty { " " } },
                                     modifier = Modifier
                                         .align(Alignment.CenterVertically)
-                                        .fillMaxWidth(0.8f)
-                                        .padding(start = 8.dp)
+                                        .weight(5f)
+                                        .padding(start = if (!viewModel.incognitoMode)8.dp else 0.dp)
                                         .background(Color.Transparent),
                                     textStyle = TextStyle.Default.copy(
                                         color = MaterialTheme.colorScheme.onSurface,
@@ -262,8 +278,8 @@ object WebUI {
                                 IconButton(
                                     onClick = {
                                         webView.reload()
-                                    }//,
-//                                    Modifier.weight(1f)
+                                    },
+                                    modifier = Modifier.weight(0.8f)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Rounded.Refresh,
@@ -271,19 +287,7 @@ object WebUI {
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
-//                                IconButton(
-//                                    onClick = {
-//                                        showInfoSheet = true
-//                                    },
-//                                    Modifier.weight(1f)
-//                                ) {
-//                                    Icon(
-//                                        imageVector = Icons.Rounded.Build,
-//                                        contentDescription = null,
-//                                        tint = MaterialTheme.colorScheme.primary,
-//                                        modifier = Modifier.size(18.dp)
-//                                    )
-//                                }
+
                             }
                         },
                         modifier = Modifier.height(88.dp)
@@ -325,6 +329,11 @@ object WebUI {
                     }
                 }
 
+                LaunchedEffect(viewModel.incognitoMode, Unit) {
+                    val mode = !viewModel.incognitoMode
+                    CookieManager.getInstance().setAcceptThirdPartyCookies(webView, mode)
+                    CookieManager.getInstance().setAcceptCookie(mode)
+                }
 
                 // WebView 显示区域
                 AndroidView(

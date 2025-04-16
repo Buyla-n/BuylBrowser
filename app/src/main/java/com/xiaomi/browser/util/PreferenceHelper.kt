@@ -6,6 +6,9 @@ import androidx.core.content.edit
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.xiaomi.browser.R
+import com.xiaomi.browser.data.BookmarkData
+import com.xiaomi.browser.data.HistoryItemData
+import com.xiaomi.browser.data.QuickLinkData
 
 class PreferenceHelper(context: Context) {
     private val sharedPref: SharedPreferences =

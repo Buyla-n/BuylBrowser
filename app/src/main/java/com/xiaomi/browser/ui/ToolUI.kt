@@ -70,11 +70,11 @@ import com.xiaomi.browser.R
 import com.xiaomi.browser.ui.HomeUI.CommonItem
 import com.xiaomi.browser.ui.HomeUI.CommonToolBar
 import com.xiaomi.browser.ui.HomeUI.QuickSetItem
-import com.xiaomi.browser.util.BookmarkData
+import com.xiaomi.browser.data.BookmarkData
 import com.xiaomi.browser.util.BrowserViewModel
-import com.xiaomi.browser.util.HistoryItemData
+import com.xiaomi.browser.data.HistoryItemData
 import com.xiaomi.browser.util.PreferenceHelper
-import com.xiaomi.browser.util.QuickSetData
+import com.xiaomi.browser.data.QuickSetData
 import com.xiaomi.browser.util.Util.DESKTOP_USER_AGENT
 import com.xiaomi.browser.util.Util.MOBILE_USER_AGENT
 import com.xiaomi.browser.util.Util.openDownload

@@ -2,6 +2,7 @@ package com.xiaomi.browser.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
@@ -114,10 +115,15 @@ object WebUI {
                 }
 
                 webViewClient = object : WebViewClient() {
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                        super.onPageStarted(view, url, favicon)
+                        loading = true
+                    }
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         loading = false
                         val shouldAddNew = when {
+                            viewModel.incognitoMode -> false
                             pref.getHistory().isEmpty() -> true
                             else -> pref.getHistory().last().url != url
                         }

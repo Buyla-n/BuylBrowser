@@ -128,7 +128,8 @@ object ToolUI {
                 QuickSetData(id = 8, icon = R.drawable.action_fullscreen, title = "全屏", enabled = viewModel.fullscreenMode, switchMode = true),
                 QuickSetData(id = 9, icon = R.drawable.action_bookmark, title = "书签"),
                 QuickSetData(id = 10, icon = R.drawable.action_nopicture, title = nonPictureTitle.toString()),
-                QuickSetData(id = 11, icon = R.drawable.action_diff, title = "资源")
+                QuickSetData(id = 11, icon = R.drawable.action_diff, title = "资源"),
+                QuickSetData(id = 12, icon = R.drawable.action_incognito, title = "隐身", enabled = viewModel.incognitoMode, switchMode = true)
             )
 
         ModalBottomSheet(
@@ -219,12 +220,19 @@ object ToolUI {
                                                 9 -> { viewModel.quickSetState = 2 }
 
                                                 10 -> {
-                                                    viewModel.NonPicture = ((viewModel.NonPicture + 1) % 3).also { prefs.NonPicture = it
+                                                    viewModel.NonPicture = ((viewModel.NonPicture + 1) % 3).also {
+                                                        prefs.NonPicture = it
                                                         webViewRef?.reload()
                                                     }
                                                 }
 
                                                 11 -> { viewModel.quickSetState = 3 }
+
+                                                12 -> {
+                                                    viewModel.incognitoMode =
+                                                        !viewModel.incognitoMode
+                                                    prefs.incognitoMode = viewModel.incognitoMode
+                                                }
                                             }
                                         },
                                         enabled = item.enabled,

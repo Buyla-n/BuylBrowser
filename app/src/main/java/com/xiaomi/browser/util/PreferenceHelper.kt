@@ -25,6 +25,10 @@ class PreferenceHelper(context: Context) {
         get() = sharedPref.getInt("KEY_NONPICTURE", 0)
         set(value) = sharedPref.edit { putInt("KEY_NONPICTURE", value) }
 
+    var incognitoMode: Boolean
+        get() = sharedPref.getBoolean("KEY_INCOGNITO_MODE", false)
+        set(value) = sharedPref.edit { putBoolean("KEY_INCOGNITO_MODE", value) }
+
     //list
     fun addQuickLink(item: QuickLinkData): Boolean {
         val currentList = getQuickLinks().toMutableList()

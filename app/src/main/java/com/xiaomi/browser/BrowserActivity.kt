@@ -30,6 +30,7 @@ class BrowserActivity : ComponentActivity() {
 
         viewModel.darkMode = PreferenceHelper(context = this).darkMode
         viewModel.NonPicture = PreferenceHelper(this).NonPicture
+        viewModel.incognitoMode = PreferenceHelper(this).incognitoMode
 
         setContent {
             BrowserTheme {
